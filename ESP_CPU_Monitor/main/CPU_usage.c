@@ -17,12 +17,6 @@ QueueHandle_t jsonQueue;
 void CPU_usage_start(void (*custom_user_printf)(char *))
 {
 
-    //  printf("FreeRTOS Real-Time CPU Usage Example\n");
-
-    // if (user_printf == NULL)
-    // {
-    //     user_printf = printf;
-    // }
 
     #if CPU_LOAD
 
