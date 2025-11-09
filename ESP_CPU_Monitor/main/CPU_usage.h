@@ -5,6 +5,9 @@
 #include "freertos/semphr.h"
 #include "esp_err.h"
 #include <string.h>
+#include "esp_system.h"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
 
 
 // --------------------------------------------------------------------
@@ -41,7 +44,7 @@ typedef struct {
     uint32_t percentage;
     bool created;
     bool deleted;
-    int core_id;   // <--- add this
+    int core_id;
 } task_stats_t;
 
 typedef struct {
@@ -49,6 +52,8 @@ typedef struct {
     size_t task_count;
     esp_err_t status;
 } stats_result_t;
+
+
 
 // --------------------------------------------------------------------
 // Function prototypes
