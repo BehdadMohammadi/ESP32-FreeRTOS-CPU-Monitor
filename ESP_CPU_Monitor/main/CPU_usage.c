@@ -55,14 +55,10 @@ void CPU_usage_start()
 }
 
 // --------------------------------------------------------------------
-// Collect real-time CPU usage (no printing)
+// Memory usage
 // --------------------------------------------------------------------
-stats_result_t print_real_time_stats(TickType_t xTicksToWait)
+void get_memory_usage()
 {
-    stats_result_t result = { .tasks = NULL, .task_count = 0, .status = ESP_OK };
-    TaskStatus_t *start_array = NULL, *end_array = NULL;
-    UBaseType_t start_array_size, end_array_size;
-    configRUN_TIME_COUNTER_TYPE start_run_time, end_run_time;
 
     // Get total and free heap (all dynamic memory)
     size_t total_heap = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
@@ -72,29 +68,37 @@ stats_result_t print_real_time_stats(TickType_t xTicksToWait)
     size_t total_internal = heap_caps_get_total_size(MALLOC_CAP_INTERNAL);
     size_t free_internal = heap_caps_get_free_size(MALLOC_CAP_INTERNAL);
 
-    // PSRAM (if available)
-    size_t total_psram = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
-    size_t free_psram = heap_caps_get_free_size(MALLOC_CAP_SPIRAM);
-
-    // Avoid division by zero
-    float heap_percent = total_heap ? (100.0 * free_heap / total_heap) : 0;
-    float internal_percent = total_internal ? (100.0 * free_internal / total_internal) : 0;
-    float psram_percent = total_psram ? (100.0 * free_psram / total_psram) : 0;
-
-    char *memory_json = strdup("{ \"error\": \"Not enough memory to build JSON\" }");
-    if (err_json)
-    {
-        if (xQueueSend(jsonQueue, &err_json, 0) != pdPASS)
-        {
-            free(err_json);
-        }
+    
+    char *memory_json = malloc(200);
+    if (memory_json) {
+        snprintf( memory_json, 200,
+            "{ \"heap_total\": %d, \"heap_free\": %d, \"internal_total\": %d, \"internal_free\": %d }",
+            total_heap, free_heap,
+            total_internal, free_internal
+        );
     }
 
 
+    if (memory_json)
+    {
+        if (xQueueSend(jsonQueue, &memory_json, 0) != pdPASS)
+        {
+            free(memory_json);
+        }
+    }
 
-    ESP_LOGI("MEM", "Heap: %.2f%% free (%d / %d bytes)", heap_percent, free_heap, total_heap);
-    ESP_LOGI("MEM", "Internal SRAM: %.2f%% free (%d / %d bytes)", internal_percent, free_internal, total_internal);
-    ESP_LOGI("MEM", "PSRAM: %.2f%% free (%d / %d bytes)", psram_percent, free_psram, total_psram);
+}
+
+// --------------------------------------------------------------------
+// Collect real-time CPU usage (no printing)
+// --------------------------------------------------------------------
+stats_result_t print_real_time_stats(TickType_t xTicksToWait)
+{
+    stats_result_t result = { .tasks = NULL, .task_count = 0, .status = ESP_OK };
+    TaskStatus_t *start_array = NULL, *end_array = NULL;
+    UBaseType_t start_array_size, end_array_size;
+    configRUN_TIME_COUNTER_TYPE start_run_time, end_run_time;
+
 
     do {
         start_array_size = uxTaskGetNumberOfTasks() + ARRAY_SIZE_OFFSET;
@@ -267,6 +271,7 @@ void stats_task(void *arg)
     while (1) {
         // printf("\nCollecting real-time stats...\n");
         stats_result_t res = print_real_time_stats(STATS_TICKS);
+        get_memory_usage();
 
         if (res.status != ESP_OK)
         {

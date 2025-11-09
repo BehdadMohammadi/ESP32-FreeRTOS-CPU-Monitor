@@ -54,7 +54,6 @@ typedef struct {
 } stats_result_t;
 
 
-
 // --------------------------------------------------------------------
 // Function prototypes
 // --------------------------------------------------------------------
@@ -64,3 +63,4 @@ stats_result_t print_real_time_stats(TickType_t xTicksToWait);
 char* generate_json_stats(stats_result_t res);
 void CPU_usage_start();
 void uart_print_task(void *arg);
+void get_memory_usage();
