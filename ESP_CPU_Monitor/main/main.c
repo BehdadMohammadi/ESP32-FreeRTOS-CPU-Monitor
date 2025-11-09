@@ -29,7 +29,7 @@ void app_main(void)
 
     CPU_usage_start(custom_user_printf);
 
-  xTaskCreatePinnedToCore(dummy_task, "dummy task", 2048, NULL,
+    xTaskCreatePinnedToCore(dummy_task, "dummy task", 2048, NULL,
                                     2, NULL, 1);
 
 }
