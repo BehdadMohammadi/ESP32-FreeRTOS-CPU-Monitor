@@ -35,7 +35,7 @@ void dummy_task(void *arg)
   while(1)
   {
     
-    vTaskDelay(pdMS_TO_TICKS(2000));
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
   }
 }
