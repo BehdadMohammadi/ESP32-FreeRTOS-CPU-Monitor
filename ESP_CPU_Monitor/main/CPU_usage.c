@@ -14,10 +14,9 @@ QueueHandle_t jsonQueue;
 
 
 
-void CPU_usage_start()
+void CPU_usage_start(void (*custom_user_printf)(char *))
 {
 
-    //  printf("FreeRTOS Real-Time CPU Usage Example\n");
 
     #if CPU_LOAD
 
@@ -46,7 +45,7 @@ void CPU_usage_start()
     xTaskCreatePinnedToCore(stats_task, "stats", 4096, NULL,
                             STATS_TASK_PRIO, NULL, 1);
     
-    xTaskCreatePinnedToCore(uart_print_task, "uart print task", 4096, NULL,
+    xTaskCreatePinnedToCore(uart_print_task, "uart print task", 4096, custom_user_printf,
                             UART_PRINT_TASK, NULL, 1);
 
     xSemaphoreGive(sync_stats_task);
@@ -221,7 +220,7 @@ char* generate_json_stats(stats_result_t res)
 // --------------------------------------------------------------------
 // Task that handle the uart
 // --------------------------------------------------------------------
-void uart_print_task(void *arg)
+void uart_print_task(void *custom_user_printf)
 {
     
     char *received_json = NULL;
@@ -231,8 +230,15 @@ void uart_print_task(void *arg)
         // Wait until something arrives in the queue
         if (xQueueReceive(jsonQueue, &received_json, portMAX_DELAY) == pdPASS)
         {
-            
-            printf("%s\n", received_json);
+            if (custom_user_printf == NULL)
+            {
+                printf("%s\n", received_json);
+            }
+            else
+            {     
+                // Print the received JSON using the user-defined function
+                ((void (*)(char *))custom_user_printf)(received_json);
+            }
             
             free(received_json);
 
