@@ -16,14 +16,18 @@
 
 #include "CPU_usage.h"
 
+// --------------------------------------------------------------------
+// Function prototypes
+// --------------------------------------------------------------------
 void dummy_task(void *arg);
+void custom_user_printf(char *received_json);
 // --------------------------------------------------------------------
 // Entry Point
 // --------------------------------------------------------------------
 void app_main(void)
 {
 
-  CPU_usage_start();
+    CPU_usage_start(custom_user_printf);
 
   xTaskCreatePinnedToCore(dummy_task, "dummy task", 2048, NULL,
                                     2, NULL, 1);
@@ -38,4 +42,9 @@ void dummy_task(void *arg)
     vTaskDelay(pdMS_TO_TICKS(1000));
 
   }
+}
+
+void custom_user_printf(char *received_json)
+{
+    printf("%s\n", received_json);
 }
